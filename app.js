@@ -538,10 +538,10 @@
       <div class="group"><h3>Copy picks</h3><div class="list plain"><div class="set"><div class="seg small" style="opacity:.4;pointer-events:none">${["off", "every 24h", "12h", "6h"].map(x => `<button class="${x === "off" ? "on" : ""}">${x}</button>`).join("")}</div></div></div>
         <div class="note">${esc((a.copyPicks && a.copyPicks.note) || "")}</div></div>
       <div class="group"><h3>Pushes</h3><div class="list plain">
-        <div class="lrow" style="cursor:default"><span class="l">Telegram</span><span class="r">not connected</span></div>
+        <div class="lrow" style="cursor:default"><span class="l">Telegram</span><span class="r">${esc((a.pushes && a.pushes.telegram) || "not connected")}</span></div>
         <div class="lrow" style="cursor:default"><span class="l">Web push</span><span class="r">${API ? "not set up" : "Telegram only"}</span></div>
         <div class="lrow" id="testpush"><span class="l" style="color:var(--blue)">Send test push</span></div>
-      </div><div class="note">Plan B: Telegram only. Telegram arrives with STEP 11.</div></div>
+      </div><div class="note">Plan B: Telegram only. Every push has an Open on FOMO button.</div></div>
       <div class="group"><div class="list plain"><div class="lrow" id="watch"><span class="l">Watch in Grok Bot</span><span class="chev">›</span></div></div></div>
       ${Object.keys(groups).map(g => `<div class="group" id="g-${g}"><h3>${BOT_COLOR[g] ? `<span class="dot" style="background:${BOT_COLOR[g]}"></span>` : ""}${GN[g] || g}</h3><div class="list plain">${groups[g].map(setRow).join("")}</div></div>`).join("")}
       <div class="group"><div class="list plain"><div class="lrow" style="cursor:default"><span class="l">Data</span><span class="r">${API ? "Local API" : "Plan B · published every 60s"} · ${S.state ? "last update " + hhmm(S.state.ts) : "—"}</span></div>
@@ -558,7 +558,8 @@
     $$("[data-enum]", v).forEach(b => b.onclick = () => { if (!b.classList.contains("on")) act({ kind: "set", key: b.dataset.enum, value: b.dataset.val }); });
     $$("[data-edit]", v).forEach(b => { if (b.tagName === "INPUT") return; b.onclick = () => editSheet(b.dataset.edit); });
     $("#invite").onclick = () => share(a.inviteUrl);
-    $("#testpush").onclick = () => openSheet(`<h4>Send test push</h4><p>Pushes go through Telegram, which isn't connected yet (STEP 11). Nothing was sent.</p><button class="btn" data-close>OK</button>`);
+    $("#testpush").onclick = () => (a.pushes && a.pushes.telegram === "connected") ? act({ kind: "cmd", cmd: "status" })
+      : openSheet(`<h4>Send test push</h4><p>Telegram is ${esc((a.pushes && a.pushes.telegram) || "not connected")}. Nothing was sent.</p><button class="btn" data-close>OK</button>`);
     $("#watch").onclick = () => openSheet(`<h4>Watch in Grok Bot</h4><p>Your bot's own computer is shown in the Grok Bot app: open this bot's chat and tap its computer to watch live. The card on Home shows the newest frame the desk published.</p><button class="btn" data-close>OK</button>`);
     $("#forget").onclick = () => { LS.removeItem("desk.d"); LS.removeItem("desk.t"); S.state = null; S.account = null; toast("Data link removed"); poll(); renderAccount(); };
   }
@@ -587,11 +588,12 @@
     if (x.kind === "sell") return `sell ${x.symbol} ${x.pct}`;
     if (x.kind === "pause") return `${x.pause ? "pause" : "resume"} ${BOT_TITLE[x.bot]}`;
     if (x.kind === "mode") return x.mode === "LIVE" ? "live" : "paper";
+    if (x.kind === "cmd") return x.cmd;
     if (x.kind === "set") return x.key === "stop_pct" ? `set stop to -${x.value}%` : `set ${x.key} to ${x.value}`;
     return "";
   }
   async function act(x) {
-    if (!API) {
+    if (!API || x.kind === "cmd") {
       if (x.revert) x.revert();
       const cmd = command(x);
       const extra = x.kind === "mode" && x.mode === "LIVE" ? " Grok Bot will ask you to type LIVE again." : "";

@@ -22,7 +22,7 @@ jobs:
   deploy:
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.deployment_retry1.outputs.page_url || steps.deployment_retry2.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,5 +34,23 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+      # GitHub's artifact listing is eventually consistent: deploy-pages sometimes sees "0 artifacts" right after the
+      # upload. Wait a moment, and retry the deploy twice before giving up.
+      - name: Let the artifact settle
+        run: sleep 8
       - id: deployment
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - name: Settle before retry 1
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 15
+      - id: deployment_retry1
+        if: steps.deployment.outcome == 'failure'
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - name: Settle before retry 2
+        if: steps.deployment.outcome == 'failure' && steps.deployment_retry1.outcome == 'failure'
+        run: sleep 25
+      - id: deployment_retry2
+        if: steps.deployment.outcome == 'failure' && steps.deployment_retry1.outcome == 'failure'
         uses: actions/deploy-pages@v4

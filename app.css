@@ -35,6 +35,11 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 /* error row */
 .errrow{margin:0 calc(-1 * var(--g)) 8px;padding:10px var(--g);background:rgba(255,69,58,.14);color:var(--red);font-size:14px;font-weight:500;display:none}
 .errrow.on{display:block}
+.errrow.setup{background:rgba(255,69,58,.12);color:var(--text);font-weight:400}
+.errrow.setup .setup-msg{color:var(--red);font-weight:500;margin-bottom:10px}
+.errrow.setup form{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.errrow.setup .setup-hint{font-size:13px;font-weight:400;color:var(--sec)}
+.errrow.setup input.txt{-webkit-text-security:disc}
 
 /* balance */
 .bal{margin-top:6px}

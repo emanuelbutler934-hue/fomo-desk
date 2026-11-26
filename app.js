@@ -18,6 +18,22 @@
   const BOTS = ["scanner", "analyst", "brain", "executor", "risk"];
   const RANGES = ["LIVE", "1H", "4H", "1D", "1W", "ALL"];
 
+  // Extract d= from a personal link, a d=TOKEN snippet, a /d/TOKEN/ path, or the token alone.
+  // Never log or return anything except the validated token (or null).
+  function parseDeskKey(raw) {
+    let s = String(raw || "").trim().replace(/^['"]+|['"]+$/g, "");
+    if (!s) return null;
+    let d = s;
+    const m = s.match(/[#?&]d=([^&#\s]+)/i) || s.match(/(?:^|[\/?])d\/([A-Za-z0-9_-]{24,200})(?:\/|$)/);
+    if (m) {
+      try { d = decodeURIComponent(m[1]); } catch (_) { d = m[1]; }
+    } else if (/^d=/i.test(s)) {
+      try { d = decodeURIComponent(s.slice(2)); } catch (_) { d = s.slice(2); }
+    }
+    d = d.trim();
+    return KEY_RX.test(d) ? d : null;
+  }
+
   // ---------- the one-time keys from the URL fragment ----------
   (function takeKeys() {
     const h = location.hash.replace(/^#/, "");
@@ -123,12 +139,55 @@
   function errRow() { return `<div id="errrow" class="errrow"></div>`; }
   function errText() {
     if (!S.err) return "";
-    if (S.err === "nokey") return "No data link on this device · open your personal link once";
+    if (S.err === "nokey") return "No data link on this device · paste your personal link below";
     if (S.err === "auth") return "Desk offline · token refused (401) · open your local link again";
     const n = Math.max(0, Math.ceil((S.nextTry - Date.now()) / 1000));
     return `Desk offline · retrying in ${n}s · last update ${S.state ? hhmm(S.state.ts) : "—"}`;
   }
-  function paintErr() { const e = $("#errrow"); if (!e) return; const t = errText(); e.textContent = t; e.classList.toggle("on", !!t); }
+  function bindLinkForm(root) {
+    const form = $("#link-form", root);
+    if (!form || form.dataset.bound) return;
+    form.dataset.bound = "1";
+    const apply = () => {
+      const inp = $("#link-in", form);
+      const raw = inp ? inp.value : "";
+      if (inp) inp.value = "";            // never leave the link on screen
+      const d = parseDeskKey(raw);
+      const hint = $("#link-hint", form);
+      if (!d) {
+        if (hint) hint.textContent = "That doesn't look like your personal link. Paste the full link, or just the d= part.";
+        return;
+      }
+      LS.setItem("desk.d", d);
+      S.err = null;
+      if (hint) hint.textContent = "";
+      poll();
+    };
+    form.addEventListener("submit", ev => { ev.preventDefault(); apply(); });
+    const inp = $("#link-in", form);
+    if (inp) inp.addEventListener("paste", () => setTimeout(apply, 0));
+  }
+  function paintErr() {
+    const e = $("#errrow");
+    if (!e) return;
+    if (S.err === "nokey" && !API) {
+      e.classList.add("on", "setup");
+      if (!$("#link-form", e)) {
+        e.innerHTML = `<div class="setup-msg">No data link on this device. On an iPhone home-screen app, paste your personal link once (the one from Telegram).</div>
+          <form id="link-form" autocomplete="off" action="#">
+            <input id="link-in" class="txt" type="password" name="desk-link" placeholder="Paste your personal link" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url">
+            <button class="btn primary" type="submit" id="link-save">Save</button>
+            <div id="link-hint" class="setup-hint" role="status"></div>
+          </form>`;
+        bindLinkForm(e);
+      }
+      return;
+    }
+    if (e.classList.contains("setup")) { e.classList.remove("setup"); e.innerHTML = ""; }
+    const t = errText();
+    e.textContent = t;
+    e.classList.toggle("on", !!t);
+  }
   const sk = (w, h, extra) => `<div class="sk" style="width:${w};height:${h}px;${extra || ""}"></div>`;
 
   // odometer: changed digits roll 600ms ease-out, 30ms stagger; reduced motion: values swap

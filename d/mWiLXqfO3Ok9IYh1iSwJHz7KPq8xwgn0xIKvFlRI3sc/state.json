@@ -1,7 +1,8 @@
 {
   "status": "placeholder",
-  "rev": 3,
+  "rev": 4,
   "note": "Desk coming soon",
-  "nonce": "rev3-1795703294",
-  "ts": "2026-11-26T09:26:00-05:00"
+  "nonce": "actions-1795703623",
+  "publish_interval_s": 60,
+  "ts": "2026-11-26T09:31:00-05:00"
 }

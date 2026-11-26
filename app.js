@@ -500,6 +500,7 @@
   }
 
   // ---------- ACCOUNT ----------
+  function gateMissing(a) { const m = a && a.liveGate && a.liveGate.messages; return m && m.length ? m.join("; ") : "the LIVE gate"; }
   function renderAccount(group) {
     if (route().name !== "account") return;
     if (typeof group !== "string") group = route().arg;
@@ -525,7 +526,7 @@
     };
     $("#view").innerHTML = head + `
       <div class="group" style="margin-top:12px"><div class="seg" id="modeseg"><button data-mode="PAPER" class="${a.mode === "PAPER" ? "on" : ""}">PAPER</button><button data-mode="LIVE" class="${a.mode === "LIVE" ? "on" : ""}">LIVE</button></div>
-        <div class="note">${a.liveLocked ? "LIVE is locked until the desk allows it (secrets/live_allowed). Switching to LIVE needs you to type LIVE." : "Switching to LIVE needs you to type LIVE."}</div></div>
+        <div class="note">${a.liveLocked ? "LIVE is locked. Missing: " + gateMissing(a) + ". Switching to LIVE also needs you to type LIVE." : "Switching to LIVE needs you to type LIVE."}</div></div>
       <div class="group"><div class="list plain">
         <div class="lrow" style="cursor:default"><span class="l">Cash</span><span class="r num" style="color:#fff;font-weight:600">${a.cash != null ? money(a.cash) : "—"}</span></div>
         <div class="lrow" data-edit="paper_start_cash"><span class="l">Night start cash (PAPER)</span><span class="r num">${a.startBalance != null ? money(a.startBalance) : "—"}</span><span class="chev">›</span></div>
@@ -576,7 +577,7 @@
   }
   function modeSheet(m) {
     if (m === "PAPER") return act({ kind: "mode", mode: "PAPER" });
-    const sh = openSheet(`<h4>Switch to LIVE</h4><p>Real money. Type LIVE to continue.${S.account && S.account.liveLocked ? " LIVE is locked right now: the desk will refuse until it's unlocked." : ""}</p>
+    const sh = openSheet(`<h4>Switch to LIVE</h4><p>Real money. Type LIVE to continue.${S.account && S.account.liveLocked ? " LIVE is locked right now. Missing: " + gateMissing(S.account) + "." : ""}</p>
       <input class="txt" id="livein" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="LIVE"><button class="btn danger off" id="liveok">Switch to LIVE</button>`);
     const inp = $("#livein", sh), ok = $("#liveok", sh);
     inp.oninput = () => ok.classList.toggle("off", inp.value !== "LIVE");

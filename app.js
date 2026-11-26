@@ -589,7 +589,7 @@
     if (x.kind === "pause") return `${x.pause ? "pause" : "resume"} ${BOT_TITLE[x.bot]}`;
     if (x.kind === "mode") return x.mode === "LIVE" ? "live" : "paper";
     if (x.kind === "cmd") return x.cmd;
-    if (x.kind === "set") return x.key === "stop_pct" ? `set stop to -${x.value}%` : `set ${x.key} to ${x.value}`;
+    if (x.kind === "set") return (x.key === "stop_pct" || x.key === "plan_b_stop_pct" || x.key === "night_loss_stop_pct") ? `set ${x.key} to -${x.value}%` : `set ${x.key} to ${x.value}`;
     return "";
   }
   async function act(x) {

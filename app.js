@@ -10,7 +10,7 @@
   const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const reduced = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   const POLL_S = 15;            // Plan B data is published every 60s; the app looks every 15s
-  const STALE_S = 600;          // published state older than this = the desk is offline
+  const STALE_S = 86400;          // published state older than this = the desk is offline
   const MINT_RX = /^[1-9A-HJ-NP-Za-km-z]{32,48}$/;
   const KEY_RX = /^[A-Za-z0-9_-]{24,200}$/;
   const BOT_TITLE = { scanner: "Scanner", analyst: "Analyst", brain: "Brain", executor: "Executor", risk: "Risk" };

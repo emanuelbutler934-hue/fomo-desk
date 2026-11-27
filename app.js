@@ -230,7 +230,7 @@
       const feed = (c.feed || []).slice(0, 4);
       return `<div class="btitle" style="color:${c.color}">${esc(c.title)}</div><div class="feed">${feed.length ? feed.map(f =>
         `<div class="fr ${f.verdict === "pass" ? "pass" : "kill"}"><span class="s">${esc(f.symbol)}</span><span class="r">${f.verdict === "pass" ? "→ Analyst" : esc(f.reason || "killed")}</span></div>`).join("")
-        : '<div class="small muted">No pools yet tonight</div>'}</div>`;
+        : '<div class="small muted">No pools yet today</div>'}</div>`;
     }
     if (c.name === "analyst") {
       const l = c.last;
@@ -328,7 +328,7 @@
     updateScreen();
     // last order
     const o = S.orders && (S.orders.rows || []).find(x => x.status !== "skipped");
-    $("#lastorder").innerHTML = !S.orders ? sk("70%", 18) : !o ? '<span class="t muted">No orders yet tonight</span>' :
+    $("#lastorder").innerHTML = !S.orders ? sk("70%", 18) : !o ? '<span class="t muted">No orders yet today</span>' :
       `<span class="t">${esc(orderLine(o))}</span>${checksHTML(o.checks || {})}`;
     // bots
     const running = (st.bots || []).filter(b => b.status === "ok").length;
@@ -433,7 +433,7 @@
         ${lock ? '<div class="small muted" style="margin-bottom:6px">Locked while a position is open</div>' : ""}
         ${botBody(c)}
         <div class="sh" style="margin:16px 0 6px"><span class="small muted">Last 20 decisions</span><a href="#/account/${c.name}" class="small">Settings</a></div>
-        ${dec == null ? sk("100%", 40) : dec.length ? `<div class="list plain" style="background:#000">${dec.slice(0, 20).map(x => decRow(c.name, x)).join("")}</div>` : '<div class="small muted">No decisions yet tonight</div>'}
+        ${dec == null ? sk("100%", 40) : dec.length ? `<div class="list plain" style="background:#000">${dec.slice(0, 20).map(x => decRow(c.name, x)).join("")}</div>` : '<div class="small muted">No decisions yet today</div>'}
       </div>`;
     }).join("");
   }
@@ -458,7 +458,7 @@
     const rows = actPages.rows;
     if (rows.length) LS.setItem("desk.seenAct", String(rows[0].id));
     $("#actlist").innerHTML = rows.length ? `<div class="list">${rows.map(actRow).join("")}</div>${actPages.next ? '<button class="more" id="more">Load more</button>' : ""}`
-      : '<div class="empty-state">Nothing yet tonight</div>';
+      : '<div class="empty-state">Nothing yet today</div>';
     const m = $("#more"); if (m) m.onclick = async () => { m.textContent = "Loading…";
       try { const p = await src.activity(actPages.next); actPages.rows = actPages.rows.concat(p.rows); actPages.next = nextCursor(p); remember(p.rows); updateActivity(); }
       catch (_) { m.textContent = "Couldn't load · tap to retry"; } };
@@ -476,7 +476,7 @@
     paintErr();
     src.coin(mint).then(c => paintCoin(c)).catch(e => {
       if (e.status === 404) { const k = S.known.get(mint) || {};
-        $("#coin").innerHTML = `<div class="empty-state">${esc(k.symbol || mint.slice(0, 6))} isn't in tonight's published coin data.</div>
+        $("#coin").innerHTML = `<div class="empty-state">${esc(k.symbol || mint.slice(0, 6))} isn't in today's published coin data.</div>
           <div class="btns">${k.link ? `<a class="btn" href="${esc(k.link)}" target="_blank" rel="noopener noreferrer">Open on FOMO</a>` : ""}<a class="btn" href="#/audit/${enc(mint)}">See the audit</a></div>`; }
       else { S.err = S.err || "offline"; paintErr(); }
     });
@@ -707,7 +707,7 @@
     const run = () => { const s = q.value.trim().toLowerCase(); if (!s) { out.innerHTML = ""; return; }
       const hits = [...S.known.values()].filter(k => (k.symbol || "").toLowerCase().includes(s) || (k.name || "").toLowerCase().includes(s) || k.mint.toLowerCase().startsWith(s)).slice(0, 20);
       out.innerHTML = hits.length ? `<div class="list plain" style="background:#000">${hits.map(k => `<div class="row" data-go="#/coin/${enc(k.mint)}"><div class="rmain"><div class="rt">${esc(k.symbol || k.mint.slice(0, 6))}</div><div class="rs">${esc(k.name || "")} · ${esc(k.mint.slice(0, 4))}…${esc(k.mint.slice(-4))}</div>${fomoA(k.link)}</div></div>`).join("")}</div>`
-        : `<div class="small muted">${MINT_RX.test(q.value.trim()) ? `<a class="fomo" href="#/coin/${enc(q.value.trim())}">Look up this mint</a>` : "Not in tonight's data. Paste the mint to look it up."}</div>`; };
+        : `<div class="small muted">${MINT_RX.test(q.value.trim()) ? `<a class="fomo" href="#/coin/${enc(q.value.trim())}">Look up this mint</a>` : "Not in today's data. Paste the mint to look it up."}</div>`; };
     q.oninput = run; setTimeout(() => q.focus(), 300);
   }
 
